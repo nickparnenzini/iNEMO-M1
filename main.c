@@ -29,7 +29,6 @@
 #define GYRO_FACT 0.0174
 #define ACC_FACT 107.0
 
-
 void GPIO_Configuration(void);
 void RCC_Configuration(void);
 void GPIO_Configuration(void);
@@ -202,23 +201,23 @@ void PwmConfig(void)
  */
 void EXTI9_5_IRQHandler(void)
 {
-  if(EXTI_GetITStatus(EXTI_Line5) != RESET)
-  {
-    /* set the DataReady flag */
-    xAccDataReady = SET;
-
-    /* Clear the pending bit */
-    EXTI_ClearITPendingBit(EXTI_Line5);
-  }
-
-  if(EXTI_GetITStatus(EXTI_Line6) != RESET)
-  {
-        /* set the DataReady flag */
-        xGyroDataReady = SET;
-
-        /* Clear the pending bit */
-        EXTI_ClearITPendingBit(EXTI_Line6);
-   }
+	  if(EXTI_GetITStatus(EXTI_Line5) != RESET)
+	  {
+	    /* set the DataReady flag */
+	    xAccDataReady = SET;
+	
+	    /* Clear the pending bit */
+	    EXTI_ClearITPendingBit(EXTI_Line5);
+	  }
+	
+	  if(EXTI_GetITStatus(EXTI_Line6) != RESET)
+	  {
+	        /* set the DataReady flag */
+	        xGyroDataReady = SET;
+	
+	        /* Clear the pending bit */
+	        EXTI_ClearITPendingBit(EXTI_Line6);
+	   }
 
 }
 
@@ -229,26 +228,25 @@ void EXTI9_5_IRQHandler(void)
     */
   uint32_t convert_num(float num)
   {
-  	  /* number representation */
-      uint32_t rappr = 0;
+    	/* number representation */
+      	uint32_t rappr = 0;
 
-      /* numeber is multiplied by 1000 to have more decimal values */
-      num = 1000.0 * num;
+      	/* numeber is multiplied by 1000 to have more decimal values */
+      	num = 1000.0 * num;
 
-      /* conversion from float to uint32 */
-      if(num < 0)
-      {
-      	rappr = pow(2,32) + num;
+      	/* conversion from float to uint32 */
+      	if(num < 0)
+      	{
+      		rappr = pow(2,32) + num;
+      	}
+      	else
+      	{
+  	  	rappr = num;
+    	}
 
-      }
-      else
-      {
-  		  rappr = num;
-  	  }
+      	rappr = (uint32_t)rappr;
 
-      rappr = (uint32_t)rappr;
-
-      return rappr;
+      	return rappr;
 
   }
 
@@ -273,7 +271,6 @@ void EXTI9_5_IRQHandler(void)
     	/* angles are expressed in radians */
     	/* we suppose a XYZ rotation */
     	/* quaternion q computation: q= q0 + iq1 + jq2 + kq3 */
-
     	q0 = - sin(phi/2.0)*sin(theta/2.0)*sin(psi/2.0) + cos(phi/2.0)*cos(theta/2.0)*cos(psi/2.0);
     	q1 = sin(phi/2.0)*cos(theta/2.0)*cos(psi/2.0) + sin(theta/2.0)*sin(psi/2.0)*cos(phi/2.0);
     	q2 = -sin(phi/2.0)*sin(psi/2.0)*cos(theta/2.0) + sin(theta/2.0)*cos(phi/2.0)*cos(psi/2.0);
@@ -304,6 +301,7 @@ int main(void)
         /* array used to send data via serial communication */
         uint32_t val_int[4];
 
+        /* variables used for Magnetometer Status Register */
         uint8_t data_mr = 0x00;
         uint8_t val = 0x00;
 
@@ -432,206 +430,201 @@ int main(void)
       	 USART_Cmd(USART1, ENABLE);
 
 
-    	   /******************************************************/
-    	   /*            MAGNETOMETER OPERATIONS                 */
-    	   /******************************************************/
+       	/******************************************************/
+       	/*            MAGNETOMETER OPERATIONS                 */
+       	/******************************************************/
 
          /* write in Magnetometer Status Register */
-    	   Lsm303dlhcMagI2CByteWrite( &val, LSM_M_SR_REG_ADDR);
+       	Lsm303dlhcMagI2CByteWrite( &val, LSM_M_SR_REG_ADDR);
 
          /* Continuous conversion setting for magnetometer */
-    	   data_mr = LSM_CONTINUOS_CONVERSION;
+       	data_mr = LSM_CONTINUOS_CONVERSION;
 
-
-
-  		   while(1)
-  		  {
+     	while(1)
+    	{
                  
-                  /* executed the first time */
-        			    if (!init)  
-        			   	{
-
-            			   		/* Bias Computation */
+          	/* executed the first time */
+    	  	if (!init)  
+   	  	{
+       			/* Bias Computation */
                         
                         /* counter variable */
-            			   		int cont;
+    	   		int cont;
 
-            			   		for (cont = 0; cont <= 1000; cont++)
-            			   		{
-                              /* read data from gyro */
-                			   			L3gd20ReadAngRate(fGyroXYZ);
+    	   		for (cont = 0; cont <= 1000; cont++)
+    	   		{
+                      		/* read data from gyro */
+   				L3gd20ReadAngRate(fGyroXYZ);
 
-                              /* bias update */
-                			   			bx = bx + fGyroXYZ[0];
-                			   			by = by + fGyroXYZ[1];
-                			   			bz = bz + fGyroXYZ[2];
+                              	/* bias update */
+	   			bx = bx + fGyroXYZ[0];
+	   			by = by + fGyroXYZ[1];
+	   			bz = bz + fGyroXYZ[2];
 
-                              /* bias computed for 1000 iterations */
-                			   			if (cont == 1000)
-                			   			{
-                  			   				bx = bx/1000;
-                  			   				by = by/1000;
-                  			   				bz = bz/1000;
-                			   			}
-            			   		}
+                              	/* bias computed for 1000 iterations */
+	   			if (cont == 1000)
+	   			{
+  	   				bx = bx/1000;
+     					by = by/1000;
+  	   				bz = bz/1000;
+	   			}
+    	   		}
 
-            			   		init = 1;
+    	   		init = 1;
 
-        			   	}
-        			    else
-        			    {
-                         /* gyro data correction */
-              				   fGyroXYZ[0] = fGyroXYZ[0] - bx;
-              				   fGyroXYZ[1] = fGyroXYZ[1] - by;
-              				   fGyroXYZ[2] = fGyroXYZ[2] - bz;
+	   	}
+	    	else
+	    	{
+                 	/* gyro data correction */
+      		   	fGyroXYZ[0] = fGyroXYZ[0] - bx;
+      		   	fGyroXYZ[1] = fGyroXYZ[1] - by;
+      		   	fGyroXYZ[2] = fGyroXYZ[2] - bz;
 
+      		   	/******************************************************/
+      		   	/*              MAGNETOMETER CONFIGURATION            */
+      		   	/******************************************************/
+      		   	
+      		   	/* each step we must change magnetometer configuration (otherwise it does not work) */
+      		   	/* if it is working in Continuous Conversion mode, it must be converted in Single Conversion mode, and viceversa */
+      		   	if(data_mr == LSM_CONTINUOS_CONVERSION)
+      		   	{
+      			    	data_mr = LSM_SINGLE_CONVERSION;
+      		 	}
+      		 	else
+      		 	{
+      			    	data_mr = LSM_CONTINUOS_CONVERSION;
+      			 }
 
-              				   /******************************************************/
-              				   /*              MAGNETOMETER CONFIGURATION            */
-              				   /******************************************************/
+   			/* Configure the magnetometer MR register */
+       			Lsm303dlhcMagI2CByteWrite( &data_mr, LSM_M_MR_REG_ADDR);
 
-              				   /* each step we must change magnetometer configuration (otherwise it does not work) */
-              				   if(data_mr == LSM_CONTINUOS_CONVERSION)
-              				   {
-              						    data_mr = LSM_SINGLE_CONVERSION;
-              					 }
-              					 else
-              					 {
-              						    data_mr = LSM_CONTINUOS_CONVERSION;
-              					 }
+		       	/*************************************************/
+		       	/*          READ DATA FROM ACCELEROMETER         */
+		       	/*************************************************/
 
-        					       /* Configure the magnetometer MR register */
-        					       Lsm303dlhcMagI2CByteWrite( &data_mr, LSM_M_MR_REG_ADDR);
+		       	/* Wait for data ready (set by the proper ISR) */
+	       		while(!xAccDataReady);
+		 	xAccDataReady = RESET;
 
-        					       /*************************************************/
-        					       /*          READ DATA FROM ACCELEROMETER         */
-        					       /*************************************************/
+		       	/* read data from accelerometer */
+		       	Lsm303dlhcAccReadAcc(fAccXYZ);
 
-        					       /* Wait for data ready (set by the proper ISR) */
-        					       while(!xAccDataReady);
-        					       xAccDataReady = RESET;
+		       	/**********************************************/
+		       	/*        READ DATA FROM MAGNETOMETER         */
+		       	/**********************************************/
 
-        					       /* read data from accelerometer */
-        					       Lsm303dlhcAccReadAcc(fAccXYZ);
+		       	/* read data from magnetometer */
+		       	Lsm303dlhcMagReadMag(fMagXZY);
 
-        					       /**********************************************/
-        					       /*        READ DATA FROM MAGNETOMETER         */
-        					       /**********************************************/
+		       	/* save original data from magnetometer, to compare them with calibrated ones */
+		       	for(i = 0; i < 3; i++)
+		       	{
+			          orig_mag[i] = fMagXZY[i];
+      	         	}
 
-        					       /* read data from magnetometer */
-        					       Lsm303dlhcMagReadMag(fMagXZY);
+		       	/* read data from temperature sensor */
+		       	fTemperature = Lsm303dlhcMagReadTemp();
 
-        					       /* save original data from magnetometer, to compare them with calibrated ones */
-        					       for(i=0; i<3; i++)
-        					       {
-        						          orig_mag[i] = fMagXZY[i];
-      					         }
+		       	/*************************************************/
+		       	/*          READ DATA FROM GYRO                  */
+		       	/*************************************************/
 
-        					       /* read data from temperature sensor */
-        					       fTemperature = Lsm303dlhcMagReadTemp();
+                 	/* Wait for data ready (set by the proper ISR) */
+		       	while(!xGyroDataReady);
+	       		xGyroDataReady = RESET;
 
+		       	/* Read data from gyroscope */
+		       	L3gd20ReadAngRate(fGyroXYZ);
 
-        					       /*************************************************/
-        					       /*          READ DATA FROM GYRO                  */
-        					       /*************************************************/
+		       	/************************************************/
+		       	/*            TILTED COMPASS                    */
+		       	/************************************************/
 
-                         /* Wait for data ready (set by the proper ISR) */
-        					       while(!xGyroDataReady);
-        					       xGyroDataReady = RESET;
+		       	/* magnetometer calibration, with pfGain and pfOffset update */
+		       	iNEMO_MagSensorCalibrationRun(fMagXZY, pfGain, pfOffset );
 
-        					       /* Read data from gyroscope */
-        					       L3gd20ReadAngRate(fGyroXYZ);
-
-        					       /************************************************/
-        					       /*            TILTED COMPASS                    */
-        					       /************************************************/
-
-        					       /* magnetometer calibration, with pfGain and pfOffset update */
-        					       iNEMO_MagSensorCalibrationRun(fMagXZY, pfGain, pfOffset );
-
-        				   	     for(i=0; i<3; i++)
-        					       {
-        						          fMagXZY[i] = (fMagXZY[i] - pfOffset[i])*pfGain[i];
-        					       }
+	   	     	for(i = 0; i < 3; i++)
+	       		{
+			          fMagXZY[i] = (fMagXZY[i] - pfOffset[i])*pfGain[i];
+		       	}
         
-        					       /* Tilted Compass algorithm for roll, pitch and yaw angles */
-        					       iNEMO_TiltedCompass(fMagXZY, fAccXYZ, pfRPH);
+		       	/* Tilted Compass algorithm for roll, pitch and yaw angles */
+		       	iNEMO_TiltedCompass(fMagXZY, fAccXYZ, pfRPH);
 
-        					       /*****************************************************/
-        					       /*              AHRS  update                         */
-        					       /*****************************************************/
+		       	/*****************************************************/
+		       	/*              AHRS  update                         */
+		       	/*****************************************************/
 
-        					       /* gyro measurements are in degrees per second (dps) *
-        					         and must be converted in rad/s */
+		       	/* gyro measurements are in degrees per second (dps) and must be converted in rad/s */
 
-        					       for(i =0; i<3; i++)
-        					       {
-        						          gyro[i] = fGyroXYZ[i]*GYRO_FACT;
-        					            acc[i] =  fAccXYZ[i]/ACC_FACT ;
-        						          mag[i] = fMagXZY[i]; 
-        					       }
+		       	for(i =0; i<3; i++)
+		       	{
+		          	gyro[i] = fGyroXYZ[i]*GYRO_FACT;
+		            	acc[i] =  fAccXYZ[i]/ACC_FACT ;
+		          	mag[i] = fMagXZY[i]; 
+		       	}
 
-                         /* quaternion initialization */
-        					       /* values to initialize quaternion: angles computed during 2nd iteration*/
-        					       if(init_quat == 1)
-        					       {
+                 	/* quaternion initialization */
+       			/* values to initialize quaternion: angles computed during 2nd iteration*/
+		       	if(init_quat == 1)
+		       	{
                                 quat_initialization();
-        					       }
+			}
 
-                         /* init_quat is 1 in the 1st iteration */
-        					       init_quat++;
+                 	/* init_quat is 1 in the 1st iteration */
+		       	init_quat++;
 
-        					       /* Madgwick filter algorithm for attitude estimation */
-        					       /* angles estimation after quaternion initialization */
-        					       if(init_quat > 1)
-        					       {
-        			               MadgwickAHRSupdate( -gyro[1], gyro[0], gyro[2], acc[0], acc[1], acc[2] , mag[0], mag[1], mag[2]);
-        					       }
+		       	/* Madgwick filter algorithm for attitude estimation */
+		       	/* angles estimation after quaternion initialization */
+		       	if(init_quat > 1)
+		       	{
+		               MadgwickAHRSupdate( -gyro[1], gyro[0], gyro[2], acc[0], acc[1], acc[2] , mag[0], mag[1], mag[2]);
+		       	}
 
-        					       /* quat is an auxiliar array used to save quaternion data */
-        					       quat[0] = q0;
-        					       quat[1] = q1;
-        					       quat[2] = q2;
-        					       quat[3] = q3;
+		       	/* quat is an auxiliar array used to save quaternion data */
+		       	quat[0] = q0;
+		       	quat[1] = q1;
+		       	quat[2] = q2;
+		       	quat[3] = q3;
 
 
-        			   }//end else
+	   	}//end else
 
-				         /************************************************/
-				         /*                SEND  DATA                    */
-				         /************************************************/
+         	/************************************************/
+         	/*                SEND  DATA                    */
+         	/************************************************/
 
-                 /* 'index' is used as a reference to different data */
-                 while(index <= 6)
-                 {
-                	   switch(index)
-                	   {
-                	         /* gyro data */
-                	         case GYRO:
-                  	        	  n = 3;
-                                for(i = 0; i<n; i++)
-                                {
-                                	  val_int[i] = convert_num(fGyroXYZ[i]);
-                                }
-                                break;
+         	/* 'index' is used as a reference to different data */
+         	while(index <= 6)
+         	{
+        	   	switch(index)
+        	   	{
+        	         	/* gyro data */
+        	         	case GYRO:
+          	        	  	n = 3;
+                        		for(i = 0; i<n; i++)
+                        		{
+                                	  	val_int[i] = convert_num(fGyroXYZ[i]);
+                                	}
+                                	break;
 
-                           /* acc data */
-                	         case ACC:
-                  	        	  n = 3;
-                  	        	  for(i = 0; i<n; i++)
-                  	        	  {
-                	        		       val_int[i] = convert_num(fAccXYZ[i]);
-                  	        	  }
-                	              break;
+                           	/* acc data */
+        	         	case ACC:
+          	        	  	n = 3;
+          	        	  	for(i = 0; i<n; i++)
+          	        	  	{
+	        		       		val_int[i] = convert_num(fAccXYZ[i]);
+          	        	  	}
+                	              	break;
 
-                	         /* magnetometer calibrated data */
-                	         case MAG:
-                  	        	 n = 3;
-                  	        	 for(i=0; i<n; i++)
-                  	        	 {
-                  	        		     val_int[i] = convert_num(fMagXZY[i]);
-                  	        	  }
-                	             break;
+        	         	/* magnetometer calibrated data */
+         			case MAG:
+          	        	 	n = 3;
+          	        	 	for(i=0; i<n; i++)
+          	        	 	{
+          	        		     	val_int[i] = convert_num(fMagXZY[i]);
+          	        	  	}
+        	             		break;
 
                 	         /* Roll, Pitch and Heading data */
                 	         case RPH:
@@ -640,7 +633,7 @@ int main(void)
                   	        	 {
                   	        		     val_int[i] = convert_num(pfRPH[i]);
                   	        	 }
-                	             break;
+	             			 break;
 
                 	         /* quaternion data */
                 	         case QUAT:
@@ -649,7 +642,7 @@ int main(void)
                   	        	 {
                   	        		     val_int[i] = convert_num(quat[i]);
                   	        	 }
-                               break;
+       			     		 break;
 
                              /* magnetometer data (not calibrated) */
                 	         case MAG_ORIG:
@@ -658,7 +651,7 @@ int main(void)
                   	        	 {
                   	        		     val_int[i] = convert_num(orig_mag[i]);
                   	        	 }
-                	             break;
+        	             	 	 break;
 
                 	         default: break;
 
@@ -681,15 +674,15 @@ int main(void)
 
                 	   }
 
-                     /* increase index value */
+             		   /* increase index value */
                 	   index++;
 
-                 }//end(while(index<=6))
+         	}//end(while(index<=6))
 
-                 /* reset index value */
-				         index = GYRO;
+         	/* reset index value */
+         	index = GYRO;
 
-		  }//end while(1)
+  	}//end while(1)
 
 }//end main
 
